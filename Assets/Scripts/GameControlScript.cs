@@ -19,7 +19,8 @@ enum PlayerState
     Idle = 0,
     Fire = 1,
     Defense = 2,
-    Reload = 3
+    Reload = 3,
+    Ban = 4
 }
 
 enum GameResult
@@ -36,27 +37,49 @@ public class GameControlScript : MonoBehaviour {
     Player[] players;
     
     public Button[] buttons;
+    public bool[] enabledButtons;
 
     public Animator[] animator = new Animator[2];
 
-    [SerializeField]
-    Image[] waitBar;
+    public Image waitBar;
 
     public Texture aTexture;
 
     bool canStart;
 
+    public Image[] bullets_p1;
+    public Image[] bullets_p2;
+
+    public RectTransform box;
+
     public Text[] text;
+
+    public Image[] heart_p1;
+    public Image[] heart_p2;
+
+    public Image[] screenDamage;
+
+    public GameObject bloodSplatter;
+    public GameObject[] gameObjectPlayer;
 
     List<PlayerState[]> p1_win = new List<PlayerState[]> {
             new PlayerState[2] { PlayerState.Fire, PlayerState.Idle },
-            new PlayerState[2] { PlayerState.Fire, PlayerState.Reload }};
+            new PlayerState[2] { PlayerState.Fire, PlayerState.Reload },
+            new PlayerState[2] { PlayerState.Fire, PlayerState.Ban }};
 
     List<PlayerState[]> p2_win = new List<PlayerState[]> {
             new PlayerState[2] { PlayerState.Idle, PlayerState.Fire },
-            new PlayerState[2] { PlayerState.Reload, PlayerState.Fire }};
+            new PlayerState[2] { PlayerState.Reload, PlayerState.Fire },
+            new PlayerState[2] { PlayerState.Ban, PlayerState.Fire }};
 
+    public AudioClip clipPlayerFire;
+    public AudioClip clipPlayerDefense;
+    public AudioClip clipPlayerReload;
+    public AudioClip clipPlayerHurt;
 
+    public AudioClip bgMusicClip;
+
+    public AudioSource[] musicSource;
 
     void Start()
     {
@@ -70,18 +93,27 @@ public class GameControlScript : MonoBehaviour {
         players[0] = new Player();
         players[1] = new Player();
 
-        foreach (Image bar in waitBar){
+        enabledButtons = new bool[6]{ true,true,true,true,true,true};
 
-            if (bar != null)
-            {
-                bar.fillAmount = 0f;
-                bar.color = Color.red;
-            }
+
+        if (waitBar != null)
+        {
+            waitBar.fillAmount = 0f;
+            waitBar.color = Color.red;
         }
+        
         foreach (Button button in buttons)
         {
             if (button != null)
+            {
                 button.interactable = false;
+            }
+        }
+
+        for (int i = 0; i < 2; i++)
+        {
+            EnableDisablePlayerAttributes(i);
+            screenDamage[i].enabled = false;
         }
 
         canStart = true;
@@ -95,12 +127,15 @@ public class GameControlScript : MonoBehaviour {
         {
             text[0].gameObject.SetActive(!players[0].HoldButton);
             text[1].gameObject.SetActive(!players[1].HoldButton);
+
             if (players[0].HoldButton && players[1].HoldButton)
             {
                 gameState = GameState.HoldAndWait;
 
-                StartCoroutine("FillBar", waitBar[0]);
-                StartCoroutine("FillBar", waitBar[1]);
+                musicSource[2].clip = bgMusicClip;
+                musicSource[2].Play();
+
+                StartCoroutine("FillBar", waitBar);
             }
         }
     }
@@ -111,13 +146,32 @@ public class GameControlScript : MonoBehaviour {
 
         if (gameState == GameState.PickAction)
         {
-            players[0].CanChoose = true;
-            players[1].CanChoose = true;
+            if (players[0].PlayerState != PlayerState.Ban) players[0].CanChoose = true;
+            if (players[1].PlayerState != PlayerState.Ban) players[1].CanChoose = true;
 
-            foreach (Button button in buttons)
+            for (int i = 0; i < players.Length; i++)
             {
-                if (button != null)
-                    button.interactable = true;
+                if (players[i].PlayerState == PlayerState.Ban)
+                {
+                    for (int j = 0; j < 3; j++)
+                    {
+                        enabledButtons[j + i*3] = false;
+                    }
+                }
+                else
+                {
+                    enabledButtons[i * 3] = players[i].NumberOfBullets == 0 ? false : true;
+                    enabledButtons[1 + i * 3] = true;
+                    enabledButtons[2 + i * 3] = players[i].NumberOfBullets == 6 ? false : true;
+                }
+            }
+
+            for (int i = 0; i < buttons.Length; i++)
+            {
+                if (buttons[i] != null && enabledButtons[i])
+                {
+                    buttons[i].interactable = true;
+                }
             }
 
         }
@@ -134,7 +188,9 @@ public class GameControlScript : MonoBehaviour {
             foreach (Button button in buttons)
             {
                 if (button != null)
+                {
                     button.interactable = false;
+                }
             }
         }
     }
@@ -165,7 +221,7 @@ public class GameControlScript : MonoBehaviour {
         ChooseAction(state, 1);
     }
 
-    private void ChooseAction(int state, int playerIndex)
+    void ChooseAction(int state, int playerIndex)
     {
         if (gameState == GameState.PickAction && players[playerIndex].CanChoose)
         {
@@ -176,17 +232,40 @@ public class GameControlScript : MonoBehaviour {
 
     void PlayerFire(int playerIndex)
     {
-        animator[playerIndex].SetTrigger("Fire");
+        if (players[playerIndex].NumberOfBullets > 0)
+        {
+            animator[playerIndex].SetTrigger("Fire");
+            players[playerIndex].NumberOfBullets -= 1;
+            musicSource[playerIndex].clip = clipPlayerFire;
+            musicSource[playerIndex].Play();
+        }
     }
 
     void PlayerDefense(int playerIndex)
     {
         animator[playerIndex].SetTrigger("Defense");
+        musicSource[playerIndex].clip = clipPlayerDefense;
+        musicSource[playerIndex].Play();
     }
 
     void PlayerReload(int playerIndex)
     {
-        players[playerIndex].NumberOfBullets = Mathf.Min(6, players[playerIndex].NumberOfBullets + 1);
+        if (players[playerIndex].NumberOfBullets < 6)
+        {
+            animator[playerIndex].SetTrigger("Reload");
+            players[playerIndex].NumberOfBullets += 1;
+            musicSource[playerIndex].clip = clipPlayerReload;
+            musicSource[playerIndex].Play();
+        }
+    }
+
+    void PlayerHurt(int playerIndex)
+    {
+        screenDamage[playerIndex].enabled = true;
+        StartCoroutine("ScreenDamageFade", playerIndex);
+        musicSource[playerIndex].clip = clipPlayerHurt;
+        musicSource[playerIndex].Play();
+        Instantiate(bloodSplatter, gameObjectPlayer[playerIndex].transform);
     }
 
     void PlayerDie(int playerIndex)
@@ -194,14 +273,28 @@ public class GameControlScript : MonoBehaviour {
         animator[playerIndex].SetTrigger("Die");
     }
 
+    IEnumerator ScreenDamageFade(int playerIndex)
+    {
+        for (float i = 0; i <= 1; i += Time.deltaTime)
+        {
+            Color tempColor = screenDamage[playerIndex].color;
+            tempColor.a = 1f - i;
+            screenDamage[playerIndex].color = tempColor;
+
+            yield return new WaitForSeconds(Time.deltaTime);
+        }
+
+        screenDamage[playerIndex].enabled = false;
+    }
+
     IEnumerator FillBar(Image waitBar)
     {
         if (gameState != GameState.GameFinished)
         {
-            for (float i = 0; i <= 1; i += Time.deltaTime / 2)
+            for (float i = 0; i <= 1; i += Time.deltaTime / 3)
             {
                 waitBar.fillAmount = i;
-                yield return new WaitForSeconds(Time.deltaTime / 2);
+                yield return new WaitForSeconds(Time.deltaTime / 3);
             }
             waitBar.fillAmount = 1f;
 
@@ -209,7 +302,7 @@ public class GameControlScript : MonoBehaviour {
 
             SetGameState(GameState.PickAction);
 
-            yield return new WaitForSeconds(1);
+            yield return new WaitForSeconds(2);
 
             SetGameState(GameState.HoldAndWait);
 
@@ -223,19 +316,37 @@ public class GameControlScript : MonoBehaviour {
 
     GameResult CalculateGameResult()
     {
+        
+
         ArrayComparer comperator = new ArrayComparer();
 
         PlayerState[] p_state = new PlayerState[2] { players[0].PlayerState, players[1].PlayerState };
 
         if( p1_win.Contains(p_state, comperator))
         {
-            ShowGameResult(0);
-            return GameResult.P1_Win;
+            players[1].Health -= 1;
+            PlayerHurt(1);
         }
         else if(p2_win.Contains(p_state, comperator))
         {
+            players[0].Health -= 1;
+            PlayerHurt(0);
+        }
+
+        for (int i = 0; i < 2; i++)
+        {
+            EnableDisablePlayerAttributes(i);
+        }
+
+        if (players[0].Health == 0)
+        {
             ShowGameResult(1);
             return GameResult.P2_Win;
+        }
+        else if(players[1].Health == 0)
+        {
+            ShowGameResult(0);
+            return GameResult.P1_Win;
         }
         else
         {
@@ -254,8 +365,7 @@ public class GameControlScript : MonoBehaviour {
         text[losingPlayer].text = "You Lost!";
         text[losingPlayer].gameObject.SetActive(true);
 
-        foreach (Image bar in waitBar)
-            bar.fillAmount = 0;
+        waitBar.fillAmount = 0;
 
         StopAllCoroutines();
     }
@@ -287,9 +397,10 @@ public class GameControlScript : MonoBehaviour {
         {
             for (int i = 0; i < players.Length; ++i)
             {
-                if (!players[i].HoldButton && gameState == GameState.HoldAndWait && waitBar[i].fillAmount > .5f)
+                if (!players[i].HoldButton && gameState == GameState.HoldAndWait && waitBar.fillAmount > .33f)
                 {
-                    ShowGameResult(i == 0 ? 1 : 0);
+                    players[i].CanChoose = false;
+                    players[i].PlayerState = PlayerState.Ban;
                 }
             }
         }
@@ -301,22 +412,22 @@ public class GameControlScript : MonoBehaviour {
             
     }
 
-    void OnGUI()
+    void EnableDisablePlayerAttributes(int playerIndex)
     {
-        if (!aTexture)
+        for (int i = 0; i < 6; i++)
         {
-            Debug.LogError("Assign a Texture in the inspector.");
-            return;
+            if(playerIndex == 0)
+                bullets_p1[i].enabled = (i < players[playerIndex].NumberOfBullets) ? true : false;
+            else
+                bullets_p2[i].enabled = (i < players[playerIndex].NumberOfBullets) ? true : false;
         }
 
-        for (int i = 0; i < players[0].NumberOfBullets; i++)
+        for (int i = 0; i < heart_p1.Length; i++)
         {
-            GUI.DrawTexture(new Rect(705 + Mathf.Cos(Mathf.PI + Mathf.PI / 3 * i) * 38, 622 + Mathf.Sin(Mathf.PI + Mathf.PI / 3 * i) * 38, 30, 30), aTexture, ScaleMode.ScaleToFit);
-        }
-
-        for (int i = 0; i < players[1].NumberOfBullets; i++)
-        {
-            GUI.DrawTexture(new Rect(571+Mathf.Cos(Mathf.PI/3*i) * 38, 67+Mathf.Sin(Mathf.PI / 3 * i) * 38, 30, 30), aTexture, ScaleMode.ScaleToFit);
+            if(playerIndex == 0)
+                heart_p1[i].enabled = (i < players[playerIndex].Health) ? true : false;
+            else
+                heart_p2[i].enabled = (i < players[playerIndex].Health) ? true : false;
         }
     }
 }
@@ -329,12 +440,15 @@ class Player
         CanChoose = true;
         HoldButton = false;
         NumberOfBullets = 1;
+        Health = 3;
     }
 
     public bool CanChoose { get; set; }
     public bool HoldButton { get; set; }
     public int NumberOfBullets { get; set; }
+    public int Buttons { get; set; }
     internal PlayerState PlayerState { get; set; }
+    public int Health { get; set; }
 }
 
 class ArrayComparer : EqualityComparer<PlayerState[]>

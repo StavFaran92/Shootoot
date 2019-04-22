@@ -4752,6 +4752,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1624177357276362896}
   - component: {fileID: 1624177357271473854}
+  - component: {fileID: 3352661763821319862}
   m_Layer: 0
   m_Name: RedFella_GEO
   m_TagString: Untagged
@@ -4905,6 +4906,18 @@ SkinnedMeshRenderer:
     m_Center: {x: 0.005781479, y: 0.038834672, z: 0.008963294}
     m_Extent: {x: 0.1213863, y: 0.15165184, z: 0.1547305}
   m_DirtyAABB: 0
+--- !u!114 &3352661763821319862
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1624177357276713092}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 60ea38c131f20e24695262d433f93c48, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1624177357276713116
 GameObject:
   m_ObjectHideFlags: 0
