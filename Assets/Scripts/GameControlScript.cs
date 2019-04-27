@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Timers;
+using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-enum GameState
+public enum GameState
 {
     InitGame,
     HoldAndWait,
@@ -32,27 +33,31 @@ enum GameResult
 
 public class GameControlScript : MonoBehaviour {
 
+    int savedDifficulty;
+
+    float gapBetween1to2;
+    float gapBetween2to3;
+    float gapBetweenBoxGroup;
+
     GameState gameState;
 
     Player[] players;
     
     public Button[] buttons;
-    public bool[] enabledButtons;
+    bool[] enabledButtons;
+
+    public Canvas canvas;
+    public RectTransform createBoxPosition;
+    public Collider2D lineCollider;
 
     public Animator[] animator = new Animator[2];
 
-    public Image waitBar;
-
     public Texture aTexture;
-
-    bool canStart;
 
     public Image[] bullets_p1;
     public Image[] bullets_p2;
 
-    public RectTransform box;
-
-    public Text[] text;
+    public TextMeshProUGUI[] text;
 
     public Image[] heart_p1;
     public Image[] heart_p2;
@@ -61,6 +66,16 @@ public class GameControlScript : MonoBehaviour {
 
     public GameObject bloodSplatter;
     public GameObject[] gameObjectPlayer;
+
+    public Image pressBox;
+
+    List<GameObject> pressBoxList;
+
+    int boxSize;
+
+    public Image PressBoxAnim;
+
+    bool[,] isPressCorrect;
 
     List<PlayerState[]> p1_win = new List<PlayerState[]> {
             new PlayerState[2] { PlayerState.Fire, PlayerState.Idle },
@@ -78,6 +93,7 @@ public class GameControlScript : MonoBehaviour {
     public AudioClip clipPlayerHurt;
 
     public AudioClip bgMusicClip;
+    public AudioClip bgMusicClip_slow;
 
     public AudioSource[] musicSource;
 
@@ -85,7 +101,8 @@ public class GameControlScript : MonoBehaviour {
     {
         Debug.ClearDeveloperConsole();
 
-        canStart = false;
+        savedDifficulty = PlayerPrefs.GetInt("Difficulty", 2);
+
         gameState = GameState.InitGame;
 
         players = new Player[2];
@@ -95,12 +112,9 @@ public class GameControlScript : MonoBehaviour {
 
         enabledButtons = new bool[6]{ true,true,true,true,true,true};
 
+        isPressCorrect = new bool[2,2]{ { false, false},  { false, false } };
 
-        if (waitBar != null)
-        {
-            waitBar.fillAmount = 0f;
-            waitBar.color = Color.red;
-        }
+        pressBoxList = new List<GameObject>();
         
         foreach (Button button in buttons)
         {
@@ -116,46 +130,111 @@ public class GameControlScript : MonoBehaviour {
             screenDamage[i].enabled = false;
         }
 
-        canStart = true;
+        StartCoroutine("CountDown");
 
-        
     }
 
-    private void StartGame()
+    void SetActRangeByDifficulty(int difficulty)
     {
-        if (gameState == GameState.InitGame && canStart)
-        {
-            text[0].gameObject.SetActive(!players[0].HoldButton);
-            text[1].gameObject.SetActive(!players[1].HoldButton);
-
-            if (players[0].HoldButton && players[1].HoldButton)
-            {
-                gameState = GameState.HoldAndWait;
-
+        switch (difficulty) {
+            case 1:
+                boxSize = 190;
+                gapBetween1to2 = 390;
+                gapBetween2to3 = 795;
+                gapBetweenBoxGroup = 1.87f;
+                musicSource[2].clip = bgMusicClip_slow;
+                break;
+            case 2:
+                boxSize = 160;
+                gapBetween1to2 = 330;
+                gapBetween2to3 = 695;
+                gapBetweenBoxGroup = 1.67f;
                 musicSource[2].clip = bgMusicClip;
-                musicSource[2].Play();
-
-                StartCoroutine("FillBar", waitBar);
-            }
+                break;
+            case 3:
+                boxSize = 100;
+                gapBetween1to2 = 330;
+                gapBetween2to3 = 695;
+                gapBetweenBoxGroup = 1.67f;
+                musicSource[2].clip = bgMusicClip;
+                break;
         }
     }
 
-    void SetGameState(GameState state)
+    IEnumerator CountDown()
+    {
+        yield return new WaitForSeconds(1);
+        text[0].text = "2";
+        text[1].text = "2";
+        yield return new WaitForSeconds(1);
+        text[0].text = "1";
+        text[1].text = "1";
+        yield return new WaitForSeconds(1);
+        text[0].text = "GO";
+        text[1].text = "GO";
+        yield return new WaitForSeconds(1);
+        text[0].text = "";
+        text[1].text = "";
+
+        gameState = GameState.HoldAndWait;
+
+        StartCoroutine("CreatePressBox");
+
+        yield return new WaitForSeconds(.1f);
+
+        SetActRangeByDifficulty(savedDifficulty);
+
+        musicSource[2].Play();
+    }
+
+    IEnumerator CreatePressBox()
+    {
+        InstantiateBox(Vector3.zero, "box_1");
+        InstantiateBox(new Vector3(0, gapBetween1to2, 0), "box_2"); 
+        InstantiateBox(new Vector3(0, gapBetween2to3, 0), "box_3"); 
+
+        yield return new WaitForSeconds(gapBetweenBoxGroup);
+
+        StartCoroutine( "CreatePressBox");
+    }
+
+    void InstantiateBox(Vector3 pos, string label)
+    {
+        Image go = Instantiate(pressBox, createBoxPosition.transform.position + pos, pressBox.transform.rotation);
+        go.transform.SetParent(canvas.transform);
+        go.rectTransform.sizeDelta = new Vector2(boxSize, go.rectTransform.sizeDelta.y);
+        BoxCollider2D boxColldier = go.GetComponent<BoxCollider2D>();
+        boxColldier.size = new Vector2(boxSize, go.rectTransform.sizeDelta.y);
+
+        if (label == "box_1" || label == "box_2")
+            go.color = Color.red;
+        else if (label == "box_3")
+            go.color = Color.green;
+
+        go.tag = label;
+    }
+
+    
+
+
+    public void SetGameState(GameState state)
     {
         gameState = state;
 
         if (gameState == GameState.PickAction)
         {
-            if (players[0].PlayerState != PlayerState.Ban) players[0].CanChoose = true;
-            if (players[1].PlayerState != PlayerState.Ban) players[1].CanChoose = true;
+            if (players[0].PlayerState != PlayerState.Ban && isPressCorrect[0, 0] && isPressCorrect[0, 1])
+                players[0].CanChoose = true;
+            if (players[1].PlayerState != PlayerState.Ban && isPressCorrect[1, 0] && isPressCorrect[1, 1])
+                players[1].CanChoose = true;
 
             for (int i = 0; i < players.Length; i++)
             {
-                if (players[i].PlayerState == PlayerState.Ban)
+                if (players[i].PlayerState == PlayerState.Ban || !isPressCorrect[i, 0] || !isPressCorrect[i, 1])
                 {
                     for (int j = 0; j < 3; j++)
                     {
-                        enabledButtons[j + i*3] = false;
+                        enabledButtons[j + i * 3] = false;
                     }
                 }
                 else
@@ -164,6 +243,9 @@ public class GameControlScript : MonoBehaviour {
                     enabledButtons[1 + i * 3] = true;
                     enabledButtons[2 + i * 3] = players[i].NumberOfBullets == 6 ? false : true;
                 }
+
+                isPressCorrect[i,0] = false;
+                isPressCorrect[i,1] = false;
             }
 
             for (int i = 0; i < buttons.Length; i++)
@@ -192,6 +274,8 @@ public class GameControlScript : MonoBehaviour {
                     button.interactable = false;
                 }
             }
+
+            
         }
     }
 
@@ -261,6 +345,7 @@ public class GameControlScript : MonoBehaviour {
 
     void PlayerHurt(int playerIndex)
     {
+        players[playerIndex].Health -= 1;
         screenDamage[playerIndex].enabled = true;
         StartCoroutine("ScreenDamageFade", playerIndex);
         musicSource[playerIndex].clip = clipPlayerHurt;
@@ -287,49 +372,18 @@ public class GameControlScript : MonoBehaviour {
         screenDamage[playerIndex].enabled = false;
     }
 
-    IEnumerator FillBar(Image waitBar)
-    {
-        if (gameState != GameState.GameFinished)
-        {
-            for (float i = 0; i <= 1; i += Time.deltaTime / 3)
-            {
-                waitBar.fillAmount = i;
-                yield return new WaitForSeconds(Time.deltaTime / 3);
-            }
-            waitBar.fillAmount = 1f;
-
-            waitBar.color = Color.green;
-
-            SetGameState(GameState.PickAction);
-
-            yield return new WaitForSeconds(2);
-
-            SetGameState(GameState.HoldAndWait);
-
-            waitBar.fillAmount = 0f;
-
-            waitBar.color = Color.red;
-
-            StartCoroutine("FillBar", waitBar);
-        }
-    }
-
     GameResult CalculateGameResult()
     {
-        
-
         ArrayComparer comperator = new ArrayComparer();
 
         PlayerState[] p_state = new PlayerState[2] { players[0].PlayerState, players[1].PlayerState };
 
         if( p1_win.Contains(p_state, comperator))
         {
-            players[1].Health -= 1;
             PlayerHurt(1);
         }
         else if(p2_win.Contains(p_state, comperator))
         {
-            players[0].Health -= 1;
             PlayerHurt(0);
         }
 
@@ -365,14 +419,30 @@ public class GameControlScript : MonoBehaviour {
         text[losingPlayer].text = "You Lost!";
         text[losingPlayer].gameObject.SetActive(true);
 
-        waitBar.fillAmount = 0;
-
         StopAllCoroutines();
     }
 
     public void IsPointerDown(int i)
     {
-        players[i].HoldButton = true;
+        if (gameState == GameState.HoldAndWait)
+        {
+            if (!isPressCorrect[i, 0] && lineCollider.GetComponent<PointerScript>().isColliding &&
+                lineCollider.GetComponent<PointerScript>().boxType == "box_1")
+            {
+                isPressCorrect[i, 0] = true;
+            }
+            if (!isPressCorrect[i, 1] && lineCollider.GetComponent<PointerScript>().isColliding &&
+                lineCollider.GetComponent<PointerScript>().boxType == "box_2")
+            {
+                isPressCorrect[i, 1] = true;
+            }
+            if (!lineCollider.GetComponent<PointerScript>().isColliding)
+            {
+                players[i].CanChoose = false;
+                players[i].PlayerState = PlayerState.Ban;
+            }
+        }
+
     }
 
     private void helperFunction()
@@ -381,27 +451,35 @@ public class GameControlScript : MonoBehaviour {
             players[1].HoldButton = true;
     }
 
-    public void IsPointerUp(int i)
-    {
-        players[i].HoldButton = false;
-    }
-
     private void Update()
     {
-        if (gameState == GameState.InitGame)
-            StartGame();
+        //if (Input.GetKey(KeyCode.Keypad1))
+        //{
+        //    PlayerPrefs.SetInt("Difficulty", 1);
+        //}
+        //if (Input.GetKey(KeyCode.Keypad2))
+        //{
+        //    PlayerPrefs.SetInt("Difficulty", 2);
+        //}
+        //if (Input.GetKey(KeyCode.Keypad3))
+        //{
+        //    PlayerPrefs.SetInt("Difficulty", 3);
+        //}
+        //PlayerPrefs.Save();
+        //SetActRangeByDifficulty(PlayerPrefs.GetInt("Difficulty", 2));
 
-        helperFunction();
+        //helperFunction();
 
         if (gameState != GameState.GameFinished)
         {
-            for (int i = 0; i < players.Length; ++i)
+            if (lineCollider.GetComponent<PointerScript>().isColliding && 
+                lineCollider.GetComponent<PointerScript>().boxType.Equals("box_3") && gameState == GameState.HoldAndWait)
             {
-                if (!players[i].HoldButton && gameState == GameState.HoldAndWait && waitBar.fillAmount > .33f)
-                {
-                    players[i].CanChoose = false;
-                    players[i].PlayerState = PlayerState.Ban;
-                }
+                SetGameState(GameState.PickAction);
+            }
+            else if (!lineCollider.GetComponent<PointerScript>().isColliding && gameState == GameState.PickAction)
+            {
+                SetGameState(GameState.HoldAndWait);
             }
         }
         else
@@ -409,7 +487,12 @@ public class GameControlScript : MonoBehaviour {
             if (Input.GetMouseButtonDown(0))
                 SceneManager.LoadScene(SceneManager.GetActiveScene().name);
         }
-            
+
+        if (Input.GetKeyDown(KeyCode.A))
+        {
+            InstantiateBox(new Vector3( 100, 100, 0), "box_1");
+        }
+
     }
 
     void EnableDisablePlayerAttributes(int playerIndex)
@@ -429,6 +512,11 @@ public class GameControlScript : MonoBehaviour {
             else
                 heart_p2[i].enabled = (i < players[playerIndex].Health) ? true : false;
         }
+    }
+
+    public void ReturnToMainMenu()
+    {
+        SceneManager.LoadScene(0);
     }
 }
 

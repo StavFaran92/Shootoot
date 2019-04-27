@@ -5,6 +5,9 @@ TagManager:
   serializedVersion: 2
   tags:
   - canvas
+  - box_1
+  - box_2
+  - box_3
   layers:
   - Default
   - TransparentFX
