@@ -5,17 +5,11 @@ using UnityEngine;
 
 public class MainMenuScript : MonoBehaviour
 {
-    Transform transform;
     public GameObject main;
     public GameObject options;
     public GameObject howToPlay;
+    public GameObject tutorial;
     bool howToPlayState = false;
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        transform = GetComponent<Transform>();
-    }
 
     // Update is called once per frame
     void Update()
@@ -36,21 +30,28 @@ public class MainMenuScript : MonoBehaviour
         PlayerPrefs.Save();
     }
 
+    public void ChangeQuality(bool value)
+    {
+        PlayerPrefs.SetInt("EnableHighQuality", value ? 1 : 0);
+        PlayerPrefs.Save();
+    }
+
     public void OnClickMain(int i)
     {
         switch (i)
         {
             case 0:
-                SceneManager.LoadScene(1);
+                main.SetActive(false);
+                tutorial.SetActive(true);
                 break;
             case 1:
-                options.SetActive(true);
                 main.SetActive(false);
+                options.SetActive(true);
                 break;
             case 2:
+                main.SetActive(false);
                 howToPlay.SetActive(true);
                 howToPlayState = true;
-                main.SetActive(false);
                 break;
             case 3:
                 Application.Quit();
@@ -67,5 +68,21 @@ public class MainMenuScript : MonoBehaviour
                 main.SetActive(true);
                 break;
         }
+    }
+
+    public void OnClickTutorial(int i)
+    {
+        switch (i)
+        {
+            case 0:
+                PlayerPrefs.SetInt("ShouldTutorial", 1);
+                break;
+            case 1:
+                PlayerPrefs.SetInt("ShouldTutorial", 0);
+                break;
+        }
+
+        Debug.Log(i);
+        SceneManager.LoadScene(1);
     }
 }

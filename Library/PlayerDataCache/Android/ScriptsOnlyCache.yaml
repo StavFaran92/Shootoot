@@ -3,8 +3,11 @@ ScriptsOnlyBuild:
     Assembly-CSharp.dll:
     - GameControlScript
     - MainMenuScript
+    - ObjectPoolsInitializers
     - PointerScript
+    - ToggleScript
     - changeDifficultyScript
+    - fadeButton
     - playerColorScript
     - playerColorScript2
     - pressBoxScript
@@ -13,6 +16,7 @@ ScriptsOnlyBuild:
     - TMPro.TMP_Settings
     - TMPro.TMP_SpriteAsset
     - TMPro.TMP_StyleSheet
+    - TMPro.TMP_SubMeshUI
     - TMPro.TextMeshProUGUI
     UnityEditor.Graphs.dll:
     - UnityEditor.Graphs.AnimationBlendTree.Graph
@@ -32,6 +36,7 @@ ScriptsOnlyBuild:
     - UnityEngine.UI.Image
     - UnityEngine.UI.Slider
     - UnityEngine.UI.Text
+    - UnityEngine.UI.Toggle
     XiaomiSupport.dll:
     - AppStoresSupport.AppStoreSettings
     com.unity.multiplayer-hlapi.Runtime.dll:
@@ -84,57 +89,63 @@ ScriptsOnlyBuild:
     - Class: 109
       Script: {instanceID: 0}
     - Class: 114
-      Script: {instanceID: 9270}
+      Script: {instanceID: 9272}
     - Class: 114
-      Script: {instanceID: 9274}
-    - Class: 114
-      Script: {instanceID: 9330}
+      Script: {instanceID: 9276}
     - Class: 114
       Script: {instanceID: 9332}
     - Class: 114
-      Script: {instanceID: 9372}
+      Script: {instanceID: 9334}
     - Class: 114
-      Script: {instanceID: 9390}
+      Script: {instanceID: 9374}
     - Class: 114
       Script: {instanceID: 9392}
     - Class: 114
-      Script: {instanceID: 9420}
+      Script: {instanceID: 9394}
     - Class: 114
       Script: {instanceID: 9422}
     - Class: 114
-      Script: {instanceID: 9428}
+      Script: {instanceID: 9424}
     - Class: 114
-      Script: {instanceID: 9434}
+      Script: {instanceID: 9430}
     - Class: 114
-      Script: {instanceID: 9442}
+      Script: {instanceID: 9436}
     - Class: 114
-      Script: {instanceID: 9476}
+      Script: {instanceID: 9444}
     - Class: 114
       Script: {instanceID: 9478}
     - Class: 114
       Script: {instanceID: 9480}
     - Class: 114
-      Script: {instanceID: 9708}
+      Script: {instanceID: 9482}
     - Class: 114
-      Script: {instanceID: 9890}
+      Script: {instanceID: 9484}
     - Class: 114
-      Script: {instanceID: 9924}
+      Script: {instanceID: 9710}
     - Class: 114
-      Script: {instanceID: 10030}
+      Script: {instanceID: 9750}
     - Class: 114
-      Script: {instanceID: 10136}
+      Script: {instanceID: 9894}
     - Class: 114
-      Script: {instanceID: 10316}
+      Script: {instanceID: 9928}
     - Class: 114
-      Script: {instanceID: 10330}
+      Script: {instanceID: 10034}
     - Class: 114
-      Script: {instanceID: 10426}
+      Script: {instanceID: 10140}
     - Class: 114
-      Script: {instanceID: 10484}
+      Script: {instanceID: 10180}
     - Class: 114
-      Script: {instanceID: 10626}
+      Script: {instanceID: 10326}
     - Class: 114
-      Script: {instanceID: 10754}
+      Script: {instanceID: 10340}
+    - Class: 114
+      Script: {instanceID: 10436}
+    - Class: 114
+      Script: {instanceID: 10494}
+    - Class: 114
+      Script: {instanceID: 10636}
+    - Class: 114
+      Script: {instanceID: 10766}
     - Class: 115
       Script: {instanceID: 0}
     - Class: 128
@@ -213,31 +224,37 @@ ScriptsOnlyBuild:
     - Class: 108
       Script: {instanceID: 0}
     - Class: 114
-      Script: {instanceID: 9294}
+      Script: {instanceID: 9296}
     - Class: 114
-      Script: {instanceID: 9392}
-    - Class: 114
-      Script: {instanceID: 9420}
+      Script: {instanceID: 9394}
     - Class: 114
       Script: {instanceID: 9422}
     - Class: 114
-      Script: {instanceID: 9428}
+      Script: {instanceID: 9424}
     - Class: 114
-      Script: {instanceID: 9434}
+      Script: {instanceID: 9430}
     - Class: 114
-      Script: {instanceID: 9442}
+      Script: {instanceID: 9436}
     - Class: 114
-      Script: {instanceID: 9478}
+      Script: {instanceID: 9444}
     - Class: 114
-      Script: {instanceID: 9944}
+      Script: {instanceID: 9480}
     - Class: 114
-      Script: {instanceID: 10166}
+      Script: {instanceID: 9750}
     - Class: 114
-      Script: {instanceID: 10316}
+      Script: {instanceID: 9948}
     - Class: 114
-      Script: {instanceID: 10484}
+      Script: {instanceID: 10170}
     - Class: 114
-      Script: {instanceID: 10626}
+      Script: {instanceID: 10200}
+    - Class: 114
+      Script: {instanceID: 10252}
+    - Class: 114
+      Script: {instanceID: 10326}
+    - Class: 114
+      Script: {instanceID: 10494}
+    - Class: 114
+      Script: {instanceID: 10636}
     - Class: 115
       Script: {instanceID: 0}
     - Class: 128
@@ -297,7 +314,7 @@ ScriptsOnlyBuild:
     className: TMP_Dropdown
   - hash:
       serializedVersion: 2
-      Hash: afc5b93a7b192de2dcb3832fe35a5c7e
+      Hash: 71bb6a6b6c8f052f948db64c7dd3ca4f
     assemblyName: Assembly-CSharp.dll
     namespaceName: 
     className: pressBoxScript
@@ -843,7 +860,7 @@ ScriptsOnlyBuild:
     className: TMP_Asset
   - hash:
       serializedVersion: 2
-      Hash: 7c0d9dfab4422afcb83f5523b6cb6988
+      Hash: 0141ab7e10853a000e383b8159fd1236
     assemblyName: Assembly-CSharp.dll
     namespaceName: 
     className: MainMenuScript
@@ -885,13 +902,19 @@ ScriptsOnlyBuild:
     className: TextContainer
   - hash:
       serializedVersion: 2
-      Hash: cd5515c01be0ad9e3c7442c0e5f7cd3e
+      Hash: c70187fe3db30b039ac94de3ad706774
     assemblyName: Assembly-CSharp.dll
     namespaceName: 
     className: GameControlScript
   - hash:
       serializedVersion: 2
-      Hash: 99ae8ce2a3786449088f778e63b0d4a1
+      Hash: 71bb6a6b6c8f052f948db64c7dd3ca4f
+    assemblyName: Assembly-CSharp.dll
+    namespaceName: 
+    className: ToggleScript
+  - hash:
+      serializedVersion: 2
+      Hash: e9539b36af987b1fc4d5169f5d2f3d29
     assemblyName: Assembly-CSharp.dll
     namespaceName: 
     className: fadeButton
@@ -901,6 +924,12 @@ ScriptsOnlyBuild:
     assemblyName: com.unity.multiplayer-hlapi.Runtime.dll
     namespaceName: UnityEngine.Networking
     className: NetworkStartPosition
+  - hash:
+      serializedVersion: 2
+      Hash: 3217d17faac07d08d591699768a789b7
+    assemblyName: Assembly-CSharp.dll
+    namespaceName: 
+    className: ObjectPoolsInitializers
   - hash:
       serializedVersion: 2
       Hash: 3f8d7b92a6be3c715e55d5cfa7cc8384
@@ -1079,4 +1108,4 @@ ScriptsOnlyBuild:
   scenePathNames:
   - Assets/Scenes/MainMenu.unity
   - Assets/Scenes/SampleScene.unity
-  playerPath: D:/workspace/UnityProjects/Shootoot_build_06.apk
+  playerPath: D:/workspace/UnityProjects/Shootoot_build_10.apk

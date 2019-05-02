@@ -4,14 +4,26 @@ using UnityEngine;
 
 public class pressBoxScript : MonoBehaviour
 {
-    public float speed;
+    float speed;
+    bool canStart = false;
 
+    private void Start()
+    {
+        canStart = true;
+        speed = 15 * Screen.height / 1080;
+    }
     // Update is called once per frame
     void Update()
     {
-        transform.position += new Vector3(0, -speed, 0);
+        if (canStart)
+        {
+            transform.position += new Vector3(0, -speed, 0) * 60 * Time.deltaTime;
 
-        if (transform.position.y < -Screen.height)
-            Destroy(gameObject);
+            if (transform.position.y < -Screen.height)
+            {
+                ObjectPoolManager.Instance.Destroy(PoolType.beatBox, gameObject);
+                canStart = false;
+            }
+        }
     }
 }

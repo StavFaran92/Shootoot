@@ -7,7 +7,6 @@ public class fadeButton : MonoBehaviour
 {
     Button parent;
     public Canvas canvas;
-    public Image pressBoxAnim;
 
     // Start is called before the first frame update
     void Start()
@@ -15,23 +14,19 @@ public class fadeButton : MonoBehaviour
         parent = GetComponentInParent<Button>();
     }
 
-    //// Update is called once per frame
-    //void Update()
-    //{
-    //    if (parent)
-    //        ChangeColorAlpha(parent.IsInteractable() ? 1 : .3f);
-    //}
-
-    public void IsPointerDown()
+    public void IsPointerDown(Color color)
     {
-        Image anim = Instantiate(pressBoxAnim, transform.position, transform.rotation);
+        GameObject instance = ObjectPoolManager.Instance.Spawn(PoolType.buttonPushAnim, transform.position);
+        Image anim = instance.GetComponent<Image>();
+        anim.rectTransform.localScale = Vector3.one * 2.5f;
         anim.transform.SetParent(canvas.transform);
-        StartCoroutine("ButtonPressAnimActivate", anim);
+        anim.color = color;
+        StartCoroutine(ButtonPressAnimActivate(anim, instance) );
     }
 
-    IEnumerator ButtonPressAnimActivate(Image anim)
+    IEnumerator ButtonPressAnimActivate(Image anim, GameObject instance)
     {
-        Vector3 scale = anim.transform.localScale * 2.5f;
+        Vector3 scale = anim.transform.localScale;
         for (float i = 0; i < 1; i += Time.deltaTime)
         {
             anim.rectTransform.localScale = scale + new Vector3(i, i, 0) * 2;
@@ -39,7 +34,7 @@ public class fadeButton : MonoBehaviour
             yield return new WaitForEndOfFrame();
         }
 
-        Destroy(anim.gameObject);
+        ObjectPoolManager.Instance.Destroy(PoolType.buttonPushAnim, instance);
     }
 
     void ChangeColorAlpha(float a, Image anim)
