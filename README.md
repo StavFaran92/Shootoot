@@ -1,9 +1,14 @@
-# Shootoot
+## Shootoot ##
 
-![alt text](http://url/to/img.png)
-
+# Overview
 ShooToot is 2 player-1 mobile game where you and your friend will battle to the death! you do that by pressing the buttons by the rythm and choosing your actions wisely, are you up for the challenge???
 
+# Screenshots
+<img align="center" width="600" height="400" src="2.jpeg">
+
+<img align="center" width="600" height="400" src="1.jpeg">
+
+# How To Play
 The push region(1) is used to visualize the song’s rythm, it moves from right to left, it can be either red or green, when the push region hits the indicator (the yellow line) it means that both players should now act.
 this is how the players can acts: if the push region was red (1) before turning 
 blue (2) then the player should click the push button (4) if it was green (3) then he should choose an action (5-7), if you fail to press the push button when the red region turns blue or when the 
